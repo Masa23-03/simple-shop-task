@@ -41,15 +41,32 @@ export class ProductService {
         ? { name: { contains: query.name } }
         : {};
       const pagination = this.prismaService.handleQueryPagination(query);
-      const proucts = await prisma.product.findMany({
+      const sortBy = query.sortBy ?? 'createdAt';
+
+      const products = await prisma.product.findMany({
         ...removeFields(pagination, ['page']),
         where: whereClause,
+        orderBy: { [sortBy]: 'desc' },
+        select: {
+          id: true,
+          name: true,
+          price: true,
+          merchant: {
+            select: { name: true },
+          },
+        },
       });
       const count = await prisma.product.count({
         where: whereClause,
       });
+
       return {
-        data: proucts,
+        data: products.map((pr) => ({
+          id: String(pr.id),
+          name: pr.name,
+          price: Number(pr.price),
+          merchantName: pr.merchant.name,
+        })),
         ...this.prismaService.formatPaginationResponse({
           page: pagination.page,
           count,

@@ -11,3 +11,10 @@ export type ProductResponseDTO = Prisma.ProductGetPayload<{
     Asset: true;
   };
 }>;
+
+export type ProductOverviewResponseDTO = {
+  id: string;
+  name: string;
+  price: string;
+  merchantName?: string;
+};

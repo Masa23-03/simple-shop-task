@@ -1,3 +1,3 @@
-import { PaginationQueryType } from 'src/types/util.types';
+import { PaginationAndSortType } from 'src/types/util.types';
 
-export type ProductQuery = PaginationQueryType & { name?: string };
+export type ProductQuery = PaginationAndSortType & { name?: string };
