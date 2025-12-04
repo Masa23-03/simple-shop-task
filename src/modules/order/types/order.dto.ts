@@ -38,7 +38,6 @@ export type UpdateOrderStatus = {
   status: OrderStatus;
 };
 
-//TODO: update return order status DTO
 export type UpdateOrderReturnStatusDTO = {
   status: ReturnStatus;
 };

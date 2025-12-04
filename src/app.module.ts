@@ -9,6 +9,7 @@ import { RolesGuard } from './modules/auth/guards/roles.guard';
 import { ProductModule } from './modules/product/product.module';
 import { FileModule } from './modules/file/file.module';
 import { OrderModule } from './modules/order/order.module';
+import { TransactionModule } from './modules/transaction/transaction.module';
 import path from 'path';
 
 const envFilePath = path.join(
@@ -28,6 +29,7 @@ const envFilePath = path.join(
     ProductModule,
     FileModule,
     OrderModule,
+    TransactionModule,
   ],
   providers: [
     {

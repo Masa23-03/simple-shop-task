@@ -98,7 +98,6 @@ export class OrderController {
     );
   }
 
-  //TODO: update return status
   @Roles(['ADMIN'])
   @Patch(':id') //return id
   updateReturnStatus(
