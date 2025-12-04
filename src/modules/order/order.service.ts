@@ -12,7 +12,6 @@ import { Prisma, Product } from 'generated/prisma';
 import { Decimal } from 'generated/prisma/runtime/library';
 import { PaginatedResult, PaginationQueryType } from 'src/types/util.types';
 import { removeFields } from 'src/utils/object.util';
-import { RolesGuard } from '../auth/guards/roles.guard';
 
 @Injectable()
 export class OrderService {
