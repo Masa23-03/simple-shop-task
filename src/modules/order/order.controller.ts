@@ -30,6 +30,7 @@ import {
 import { paginationSchema } from 'src/utils/api.util';
 import type {
   PaginatedResult,
+  PaginationAndSortType,
   PaginationQueryType,
 } from 'src/types/util.types';
 import { User } from 'src/decorators/user.decorator';
@@ -56,7 +57,7 @@ export class OrderController {
     @Req() request: Express.Request,
 
     @Query(new ZodValidationPipe(paginationSchema))
-    query: PaginationQueryType,
+    query: PaginationAndSortType,
   ): Promise<PaginatedResult<OrderOverviewResponseDTO>> {
     return this.orderService.findAll(BigInt(request.user!.id), query);
   }

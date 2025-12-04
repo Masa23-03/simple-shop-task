@@ -8,9 +8,13 @@ import type {
 } from './types/order.dto';
 import { DatabaseService } from '../database/database.service';
 import { MoneyUtil } from 'src/utils/money.util';
-import { Prisma, Product } from 'generated/prisma';
+import { Order, Prisma, Product } from 'generated/prisma';
 import { Decimal } from 'generated/prisma/runtime/library';
-import { PaginatedResult, PaginationQueryType } from 'src/types/util.types';
+import {
+  PaginatedResult,
+  PaginationAndSortType,
+  PaginationQueryType,
+} from 'src/types/util.types';
 import { removeFields } from 'src/utils/object.util';
 
 @Injectable()
@@ -74,24 +78,45 @@ export class OrderService {
 
   findAll(
     userId: bigint,
-    query: PaginationQueryType,
+    query: PaginationAndSortType,
   ): Promise<PaginatedResult<OrderOverviewResponseDTO>> {
     return this.prismaService.$transaction(async (prisma) => {
       const pagination = this.prismaService.handleQueryPagination(query);
+      const orderByQ = query.sortBy ?? 'createdAt';
 
       const orders = await prisma.order.findMany({
         ...removeFields(pagination, ['page']),
         where: { userId },
+        orderBy: { [orderByQ]: 'desc' },
+
         include: {
           orderProducts: true,
-          orderReturns: true,
-          transactions: true,
         },
+        // select:{
+        //   id :true,
+        //   orderStatus:true ,
+        //   createdAt:true,
+        // },
       });
 
-      const count = await prisma.order.count();
+      const count = await prisma.order.count({ where: { userId } });
+
       return {
-        data: orders,
+        data: orders.map((order) => {
+          const total = MoneyUtil.calculateTotalAmount(
+            order.orderProducts.map((product) => ({
+              price: product.pricePerItem,
+              quantity: product.totalQty,
+            })),
+          );
+          return {
+            id: String(order.id),
+            createdAt: order.createdAt,
+            status: order.orderStatus,
+            totalAmount: Number(total),
+          };
+        }),
+
         ...this.prismaService.formatPaginationResponse({
           page: pagination.page,
           count,
