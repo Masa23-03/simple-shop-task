@@ -1,4 +1,4 @@
-import { OrderStatus, Prisma, UserRole } from 'generated/prisma';
+import { OrderStatus, Prisma, ReturnStatus, UserRole } from 'generated/prisma';
 
 export type CreateOrderDTO = { productId: number; qty: number }[];
 
@@ -34,7 +34,11 @@ export type CreateOrderReturnDTO = {
   items: { productId: number; qty: number }[];
 };
 
-//TODO: Update Order Status DTO
 export type UpdateOrderStatus = {
   status: OrderStatus;
+};
+
+//TODO: update return order status DTO
+export type UpdateOrderReturnStatusDTO = {
+  status: ReturnStatus;
 };

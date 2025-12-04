@@ -17,6 +17,7 @@ import type {
   CreateOrderReturnDTO,
   OrderOverviewResponseDTO,
   OrderResponseDTO,
+  UpdateOrderReturnStatusDTO,
   UpdateOrderStatus,
 } from './types/order.dto';
 import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
@@ -24,6 +25,7 @@ import {
   createOrderDTOValidationSchema,
   createReturnDTOValidationSchema,
   updateOrderStatusValidationSchema,
+  updateReturnStatusValidationSchema,
 } from './util/order.validation.schema';
 import { paginationSchema } from 'src/utils/api.util';
 import type {
@@ -93,6 +95,20 @@ export class OrderController {
     return this.orderService.updateOrderStatus(
       BigInt(id),
       updateOrderStatusDto,
+    );
+  }
+
+  //TODO: update return status
+  @Roles(['ADMIN'])
+  @Patch(':id') //return id
+  updateReturnStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(new ZodValidationPipe(updateReturnStatusValidationSchema))
+    updateReturnStatusDto: UpdateOrderReturnStatusDTO,
+  ) {
+    return this.orderService.updateReturnStatus(
+      BigInt(id),
+      updateReturnStatusDto,
     );
   }
 }

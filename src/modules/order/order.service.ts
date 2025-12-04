@@ -3,6 +3,7 @@ import type {
   CreateOrderDTO,
   CreateOrderReturnDTO,
   OrderOverviewResponseDTO,
+  UpdateOrderReturnStatusDTO,
   UpdateOrderStatus,
 } from './types/order.dto';
 import { DatabaseService } from '../database/database.service';
@@ -199,11 +200,70 @@ export class OrderService {
     return this.findOne(createReturnDto.orderId, userId);
   }
 
-  //TODO: Update Order Status
   updateOrderStatus(id: bigint, updateOrderStatusDto: UpdateOrderStatus) {
     return this.prismaService.order.update({
       where: { id },
       data: { orderStatus: updateOrderStatusDto.status },
+    });
+  }
+
+  //TODO: update return status
+  async updateReturnStatus(
+    id: bigint,
+    updateReturnStatus: UpdateOrderReturnStatusDTO,
+  ) {
+    const returnedOrder =
+      await this.prismaService.orderReturn.findUniqueOrThrow({
+        where: { id },
+        include: {
+          order: {
+            include: { orderProducts: true },
+          },
+          returnedItems: true,
+        },
+      });
+
+    const newStatus = updateReturnStatus.status;
+
+    if (returnedOrder.status === 'REFUND' && newStatus !== 'REFUND')
+      throw new BadRequestException('Invalid return status transition');
+    if (newStatus === 'PENDING' && returnedOrder.status !== 'PENDING')
+      throw new BadRequestException('Invalid return status transition');
+    if (newStatus === 'REFUND' && returnedOrder.status !== 'PICKED')
+      throw new BadRequestException('Invalid return status transition');
+    if (newStatus !== 'REFUND') {
+      return this.prismaService.orderReturn.update({
+        where: { id },
+        data: { status: newStatus },
+      });
+    }
+    const refundItems = returnedOrder.returnedItems.map((returnedItem) => {
+      const orderProduct = returnedOrder.order.orderProducts.find(
+        (item) => item.productId === returnedItem.productId,
+      );
+      if (!orderProduct)
+        throw new BadRequestException('Order product not found');
+      return {
+        price: orderProduct.pricePerItem,
+        quantity: returnedItem.qty,
+      };
+    });
+
+    const returnedAmount = MoneyUtil.calculateTotalAmount(refundItems);
+    return await this.prismaService.$transaction(async (prismaTX) => {
+      await prismaTX.userTransaction.create({
+        data: {
+          userId: returnedOrder.order.userId,
+          type: 'CREDIT',
+          orderId: returnedOrder.orderId,
+          orderReturnId: returnedOrder.id,
+          amount: returnedAmount,
+        },
+      });
+      return await prismaTX.orderReturn.update({
+        where: { id },
+        data: { status: newStatus },
+      });
     });
   }
 }
