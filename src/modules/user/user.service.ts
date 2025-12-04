@@ -3,8 +3,13 @@ import { RegisterDTO, UserResponseDTO } from '../auth/dto/auth.dto';
 import { DatabaseService } from '../database/database.service';
 import { User } from 'generated/prisma';
 import { removeFields } from 'src/utils/object.util';
-import { PaginatedResult, PaginationQueryType } from 'src/types/util.types';
-import { UpdateUserDTO } from './dto/user.dto';
+import {
+  PaginatedResult,
+  PaginationAndSortType,
+  PaginationQueryType,
+} from 'src/types/util.types';
+import { UpdateUserDTO, UserOverviewResponseDTO } from './dto/user.dto';
+import { email } from 'zod';
 
 @Injectable()
 export class UserService {
@@ -16,19 +21,28 @@ export class UserService {
   }
 
   findAll(
-    query: PaginationQueryType,
-  ): Promise<PaginatedResult<Omit<User, 'password'>>> {
+    query: PaginationAndSortType,
+  ): Promise<PaginatedResult<UserOverviewResponseDTO>> {
     return this.prismaService.$transaction(async (prisma) => {
       const pagination = this.prismaService.handleQueryPagination(query);
+      const orderByQ = query.sortBy ?? 'createdAt';
+
       const users = await prisma.user.findMany({
         ...removeFields(pagination, ['page']),
-        omit: {
-          password: true,
+        orderBy: { [orderByQ]: 'desc' },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
         },
       });
       const count = await prisma.user.count();
       return {
-        data: users,
+        data: users.map((u) => ({
+          ...u,
+          id: String(u.id),
+        })),
         ...this.prismaService.formatPaginationResponse({
           page: pagination.page,
           count,
