@@ -5,3 +5,9 @@ export const paginationSchema = z.object({
   page: z.coerce.number().min(1).default(1),
   limit: z.coerce.number().min(1).max(100).default(10),
 }) satisfies ZodType<PaginationQueryType>;
+
+export const orderBySchema = z.object({
+  sortBy: z.enum(['id', 'createdAt']).optional().default('createdAt'),
+});
+
+export const paginationAndOrderBySchema = paginationSchema.merge(orderBySchema);

@@ -5,6 +5,11 @@ export type PaginationQueryType = {
   page?: number;
   limit?: number;
 };
+export type SortByQueryType = {
+  sortBy?: 'createdAt' | 'id';
+};
+
+export type PaginationAndSortType = PaginationQueryType & SortByQueryType;
 
 export type PaginationResponseMeta = {
   meta: {
@@ -14,6 +19,7 @@ export type PaginationResponseMeta = {
     totalPages: number;
   };
 };
+
 export type PaginatedResult<T> = {
   data: T[];
 } & PaginationResponseMeta;
