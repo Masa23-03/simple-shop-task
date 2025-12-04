@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Param, Req, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Req,
+  Query,
+  Patch,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { OrderService } from './order.service';
 import { Roles } from 'src/decorators/roles.decorator';
 import type {
@@ -7,11 +17,13 @@ import type {
   CreateOrderReturnDTO,
   OrderOverviewResponseDTO,
   OrderResponseDTO,
+  UpdateOrderStatus,
 } from './types/order.dto';
 import { ZodValidationPipe } from 'src/pipes/zod-validation.pipe';
 import {
   createOrderDTOValidationSchema,
   createReturnDTOValidationSchema,
+  updateOrderStatusValidationSchema,
 } from './util/order.validation.schema';
 import { paginationSchema } from 'src/utils/api.util';
 import type {
@@ -20,6 +32,7 @@ import type {
 } from 'src/types/util.types';
 import { User } from 'src/decorators/user.decorator';
 import { UserResponseDTO } from '../auth/dto/auth.dto';
+import { request } from 'http';
 
 @Controller('order')
 @Roles(['CUSTOMER'])
@@ -66,6 +79,20 @@ export class OrderController {
     return this.orderService.createReturn(
       createReturnDto,
       BigInt(request.user!.id),
+    );
+  }
+
+  //TODO: Update Order Status
+  @Roles(['ADMIN'])
+  @Patch(':id')
+  updateOrderStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(new ZodValidationPipe(updateOrderStatusValidationSchema))
+    updateOrderStatusDto: UpdateOrderStatus,
+  ) {
+    return this.orderService.updateOrderStatus(
+      BigInt(id),
+      updateOrderStatusDto,
     );
   }
 }

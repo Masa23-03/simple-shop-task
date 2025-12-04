@@ -3,6 +3,7 @@ import type {
   CreateOrderDTO,
   CreateOrderReturnDTO,
   OrderOverviewResponseDTO,
+  UpdateOrderStatus,
 } from './types/order.dto';
 import { DatabaseService } from '../database/database.service';
 import { MoneyUtil } from 'src/utils/money.util';
@@ -10,10 +11,12 @@ import { Prisma, Product } from 'generated/prisma';
 import { Decimal } from 'generated/prisma/runtime/library';
 import { PaginatedResult, PaginationQueryType } from 'src/types/util.types';
 import { removeFields } from 'src/utils/object.util';
+import { RolesGuard } from '../auth/guards/roles.guard';
 
 @Injectable()
 export class OrderService {
   constructor(private readonly prismaService: DatabaseService) {}
+
   async create(createOrderDto: CreateOrderDTO, userId: number | bigint) {
     // MISSING order total
     // missing product price
@@ -194,5 +197,13 @@ export class OrderService {
     });
 
     return this.findOne(createReturnDto.orderId, userId);
+  }
+
+  //TODO: Update Order Status
+  updateOrderStatus(id: bigint, updateOrderStatusDto: UpdateOrderStatus) {
+    return this.prismaService.order.update({
+      where: { id },
+      data: { orderStatus: updateOrderStatusDto.status },
+    });
   }
 }
